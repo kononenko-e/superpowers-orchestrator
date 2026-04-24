@@ -1,0 +1,36 @@
+{
+  "name": "superpowers-orchestrator",
+  "version": "1.0.0",
+  "description": "MCP server for superpowers role management and orchestration",
+  "main": "dist/index.js",
+  "type": "module",
+  "bin": {
+    "superagents-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "install-cli": "node install.js",
+    "update-cli": "node update.js"
+  },
+  "keywords": [
+    "mcp",
+    "orchestrator",
+    "agents",
+    "roles"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "yaml": "^2.6.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.10",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
