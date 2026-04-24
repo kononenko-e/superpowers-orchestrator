@@ -114,16 +114,16 @@ Skill(s)**.
 
 Required skills по шагам:
 
-| Шаг | Субагент должен загрузить |
-|-----|---------------------------|
-| [0] | `using-git-worktrees` (загрузи через `get_skill(skill_id="using-git-worktrees")` из MCP `superagents-mcp`) |
-| [1] | `brainstorming` (загрузи через `get_skill(skill_id="brainstorming")` из MCP `superagents-mcp`) |
-| [2] | `brainstorming` (загрузи через `get_skill(skill_id="brainstorming")` из MCP `superagents-mcp`) (секция «Write design doc») |
-| [3] | `writing-plans` (загрузи через `get_skill(skill_id="writing-plans")` из MCP `superagents-mcp`) |
-| [4] | `subagent-driven-development` (загрузи через `get_skill(skill_id="subagent-driven-development")` из MCP `superagents-mcp`) в части implementer, `test-driven-development` (загрузи через `get_skill(skill_id="test-driven-development")` из MCP `superagents-mcp`), `verification-before-completion` (загрузи через `get_skill(skill_id="verification-before-completion")` из MCP `superagents-mcp`), `caveman` |
-| [5] | `requesting-code-review` (загрузи через `get_skill(skill_id="requesting-code-review")` из MCP `superagents-mcp`) (spec compliance) |
-| [6] | `requesting-code-review` (загрузи через `get_skill(skill_id="requesting-code-review")` из MCP `superagents-mcp`) (quality) |
-| [7] | `finishing-a-development-branch` (загрузи через `get_skill(skill_id="finishing-a-development-branch")` из MCP `superagents-mcp`) |
+| Шаг | Роль субагента | Режим | Скиллы для загрузки субагентом |
+|-----|----------------|-------|-------------------------------|
+| [0] | `engineering-git-workflow-master` | code | `using-git-worktrees` |
+| [1] | `product-manager` | architect | `brainstorming` |
+| [2] | `engineering-software-architect` | architect | `brainstorming` (секция «Write design doc») |
+| [3] | `project-manager-senior` | architect | `writing-plans` |
+| [4] | исполняющая роль | code | `subagent-driven-development` (implementer), `test-driven-development`, `verification-before-completion`, `caveman` |
+| [5] | `engineering-code-reviewer` | code | `requesting-code-review` (spec compliance) |
+| [6] | `engineering-code-reviewer` | code | `requesting-code-review` (quality) |
+| [7] | `engineering-git-workflow-master` | code | `finishing-a-development-branch` |
 
 Пути артефактов:
 - Spec: `agent_docs/superpowers/specs/YYYY-MM-DD-<slug>-design.md`
