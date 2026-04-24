@@ -402,6 +402,31 @@ async function main() {
       } else {
         console.log("⚠ Could not determine config path for", ide);
       }
+      
+      // Install Orchestrator agent
+      const agentSrc = path.join(cwd, "agents", ide === "claude-desktop" ? "copilot" : ide);
+      if (fs.existsSync(agentSrc)) {
+        let agentDest;
+        if (ide === "claude-desktop") {
+          agentDest = path.join(os.homedir(), ".github", "agents");
+        } else if (ide === "cline") {
+          agentDest = path.join(os.homedir(), "Documents", "Cline", "Workflows");
+        } else if (ide === "roocode") {
+          agentDest = path.join(os.homedir(), ".roo-cline", "custom-modes");
+        }
+        
+        if (agentDest) {
+          ensureDir(agentDest);
+          const files = fs.readdirSync(agentSrc);
+          for (const file of files) {
+            fs.copyFileSync(
+              path.join(agentSrc, file),
+              path.join(agentDest, file)
+            );
+          }
+          console.log("✓ Orchestrator agent installed for", ide);
+        }
+      }
     }
   } else {
     console.log("⚠ No IDE selected.");
