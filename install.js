@@ -83,6 +83,11 @@ function detectIde() {
     detected.push("claude-desktop");
   }
   
+  // Claude Code
+  if (fs.existsSync(path.join(os.homedir(), ".claude"))) {
+    detected.push("claude-code");
+  }
+  
   // Cline
   if (process.env.CLINE_PATH || fs.existsSync(path.join(os.homedir(), "Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev"))) {
     detected.push("cline");
@@ -109,6 +114,17 @@ function detectIde() {
   const zedConfigPath = getZedConfigPath();
   if (zedConfigPath && fs.existsSync(zedConfigPath)) {
     detected.push("zed");
+  }
+  
+  // Windsurf - check in current directory
+  detected.push("windsurf");
+  
+  // OpenCode - check in current directory
+  detected.push("opencode");
+  
+  // Qwen
+  if (fs.existsSync(path.join(os.homedir(), ".qwen"))) {
+    detected.push("qwen");
   }
   
   return detected;
@@ -185,11 +201,15 @@ function getMcpSettingsPath(ide) {
 async function selectIde(detectedIdes) {
   const choices = [
     { title: "Claude Desktop", value: "claude-desktop", selected: detectedIdes.includes("claude-desktop") },
+    { title: "Claude Code", value: "claude-code", selected: detectedIdes.includes("claude-code") },
     { title: "Cline (VS Code)", value: "cline", selected: detectedIdes.includes("cline") },
     { title: "RooCode (VS Code)", value: "roocode", selected: detectedIdes.includes("roocode") },
     { title: "Cursor", value: "cursor", selected: detectedIdes.includes("cursor") },
     { title: "Continue.dev", value: "continue", selected: detectedIdes.includes("continue") },
     { title: "Zed", value: "zed", selected: detectedIdes.includes("zed") },
+    { title: "Windsurf", value: "windsurf", selected: detectedIdes.includes("windsurf") },
+    { title: "OpenCode", value: "opencode", selected: detectedIdes.includes("opencode") },
+    { title: "Qwen", value: "qwen", selected: detectedIdes.includes("qwen") },
   ];
   
   const response = await prompts({
@@ -404,28 +424,44 @@ async function main() {
       }
       
       // Install Orchestrator agent
-      const agentSrc = path.join(cwd, "agents", ide === "claude-desktop" ? "copilot" : ide);
-      if (fs.existsSync(agentSrc)) {
-        let agentDest;
-        if (ide === "claude-desktop") {
-          agentDest = path.join(os.homedir(), ".github", "agents");
-        } else if (ide === "cline") {
-          agentDest = path.join(os.homedir(), "Documents", "Cline", "Workflows");
-        } else if (ide === "roocode") {
-          agentDest = path.join(os.homedir(), ".roo-cline", "custom-modes");
+      let agentSrc, agentDest;
+      
+      if (ide === "claude-desktop") {
+        agentSrc = path.join(cwd, "agents", "copilot");
+        agentDest = path.join(os.homedir(), ".github", "agents");
+      } else if (ide === "claude-code") {
+        agentSrc = path.join(cwd, "agents", "claude-code");
+        agentDest = path.join(os.homedir(), ".claude", "agents");
+      } else if (ide === "cline") {
+        agentSrc = path.join(cwd, "agents", "cline");
+        agentDest = path.join(os.homedir(), "Documents", "Cline", "Workflows");
+      } else if (ide === "roocode") {
+        agentSrc = path.join(cwd, "agents", "roocode");
+        agentDest = path.join(os.homedir(), ".roo-cline", "custom-modes");
+      } else if (ide === "cursor") {
+        agentSrc = path.join(cwd, "agents", "cursor");
+        agentDest = path.join(cwd, ".cursor", "rules");
+      } else if (ide === "windsurf") {
+        agentSrc = path.join(cwd, "agents", "windsurf");
+        agentDest = cwd;
+      } else if (ide === "opencode") {
+        agentSrc = path.join(cwd, "agents", "opencode");
+        agentDest = path.join(cwd, ".opencode", "agent");
+      } else if (ide === "qwen") {
+        agentSrc = path.join(cwd, "agents", "qwen");
+        agentDest = path.join(os.homedir(), ".qwen", "agents");
+      }
+      
+      if (agentSrc && agentDest && fs.existsSync(agentSrc)) {
+        ensureDir(agentDest);
+        const files = fs.readdirSync(agentSrc);
+        for (const file of files) {
+          fs.copyFileSync(
+            path.join(agentSrc, file),
+            path.join(agentDest, file)
+          );
         }
-        
-        if (agentDest) {
-          ensureDir(agentDest);
-          const files = fs.readdirSync(agentSrc);
-          for (const file of files) {
-            fs.copyFileSync(
-              path.join(agentSrc, file),
-              path.join(agentDest, file)
-            );
-          }
-          console.log("✓ Orchestrator agent installed for", ide);
-        }
+        console.log("✓ Orchestrator agent installed for", ide);
       }
     }
   } else {

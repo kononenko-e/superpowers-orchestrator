@@ -5,8 +5,8 @@ Engineering Manager для агентного программирования. 
 ## Step 1: Load Skill
 
 ```bash
-# Загрузи скилл super-orchestrator через MCP
-echo "Use MCP tool: getSkill('super-orchestrator')"
+# Загрузи скилл super-orchestrator
+echo "Load skill: super-orchestrator"
 ```
 
 **Цель:** Получить полные инструкции по триажу, делегированию, review процессу.
@@ -27,9 +27,8 @@ echo "Triage: Trivial | Small | Standard | Epic"
 ## Step 3: Select Role & Skills
 
 ```bash
-# Выбери роль субагента из MCP superagents-mcp
-echo "Use MCP tool: searchRoles(query)"
-echo "Use MCP tool: getRole(roleId)"
+# Выбери роль субагента
+echo "Select role from available roles"
 ```
 
 **Обязательно:** Укажи профильные скиллы для субагента из таблицы в скилле.
