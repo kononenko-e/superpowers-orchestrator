@@ -1,5 +1,5 @@
 ---
-name: superpowers-orchestrator
+name: super-orchestrator
 description: >-
   Engineering Manager для агентного программирования. Триаж сложности
   (Trivial/Small/Standard/Epic), роли из MCP `superagents-mcp`,
@@ -145,9 +145,9 @@ review) **живут внутри соответствующих скиллов*
 специфика (доп. Iron rules и формат verdict), которую оркестратор
 подмешивает в §8:
 
-- [`implementer-prompt.md`](implementer-prompt.md:1) — шаг [4] Execute
-- [`spec-reviewer-prompt.md`](spec-reviewer-prompt.md:1) — шаг [5] Spec Review
-- [`code-quality-reviewer-prompt.md`](code-quality-reviewer-prompt.md:1) — шаг [6] Quality Review
+- [`prompts/implementer-prompt.md`](prompts/implementer-prompt.md:1) — шаг [4] Execute
+- [`prompts/spec-reviewer-prompt.md`](prompts/spec-reviewer-prompt.md:1) — шаг [5] Spec Review
+- [`prompts/code-quality-reviewer-prompt.md`](prompts/code-quality-reviewer-prompt.md:1) — шаг [6] Quality Review
 
 Базовая обвязка (`get_role`, `get_skill`, SKILLS_LOADED, формат отчёта)
 живёт ТОЛЬКО в §8. Аддендумы её НЕ повторяют. Для шагов/ролей без
