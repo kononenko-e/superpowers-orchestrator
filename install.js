@@ -8,7 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { execSync } from "node:child_process";
-import readline from "node:readline";
+import prompts from "prompts";
 
 const REPO_URL = "https://github.com/kononenko/superpowers-orchestrator.git";
 const INSTALL_DIR = path.join(os.homedir(), ".superpowers-orchestrator");
@@ -122,41 +122,34 @@ function getMcpSettingsPath(ide) {
   return null;
 }
 
-function promptUser(question) {
-  return new Promise((resolve) => {
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
-    rl.question(question, (answer) => {
-      rl.close();
-      resolve(answer.trim());
-    });
-  });
-}
-
 async function selectIde(detectedIdes) {
-  const options = [
-    { id: "claude-desktop", name: "Claude Desktop" },
-    { id: "cline", name: "Cline (VS Code)" },
-    { id: "roocode", name: "RooCode (VS Code)" },
-    { id: "manual", name: "Manual configuration (show config)" },
-    { id: "skip", name: "Skip MCP configuration" },
+  const choices = [
+    { title: "Claude Desktop", value: "claude-desktop", selected: detectedIdes.includes("claude-desktop") },
+    { title: "Cline (VS Code)", value: "cline", selected: detectedIdes.includes("cline") },
+    { title: "RooCode (VS Code)", value: "roocode", selected: detectedIdes.includes("roocode") },
   ];
   
-  console.log("\n\x1b[1;33mSelect your MCP client:\x1b[0m");
-  options.forEach((opt, i) => {
-    const detected = detectedIdes.includes(opt.id) ? " \x1b[32m(detected)\x1b[0m" : "";
-    console.log(`  ${i + 1}. ${opt.name}${detected}`);
+  const response = await prompts({
+    type: "multiselect",
+    name: "ides",
+    message: "Select MCP clients to configure (Space to select, Enter to confirm)",
+    choices: choices,
+    hint: "- Space to select. Return to submit",
+    instructions: false,
   });
   
-  const answer = await promptUser("\nEnter number (1-5): ");
-  const index = parseInt(answer, 10) - 1;
-  
-  if (index >= 0 && index < options.length) {
-    return options[index].id;
+  if (!response.ides || response.ides.length === 0) {
+    const showManual = await prompts({
+      type: "confirm",
+      name: "value",
+      message: "No IDE selected. Show manual configuration?",
+      initial: true,
+    });
+    
+    return showManual.value ? ["manual"] : ["skip"];
   }
-  return "skip";
+  
+  return response.ides;
 }
 
 function printManualConfig() {
@@ -315,51 +308,65 @@ async function main() {
   const behavioralSource = path.join(SKILLS_SOURCE, "behavioral");
   if (fs.existsSync(behavioralSource)) {
     const entries = fs.readdirSync(behavioralSource, { withFileTypes: true });
+    let count = 0;
     for (const entry of entries) {
       if (!entry.isDirectory()) continue;
       copyDir(
         path.join(behavioralSource, entry.name),
         path.join(PRIVATE_SKILLS_DIR, entry.name)
       );
-      console.log("✓ Behavioral skill installed (MCP-only):", entry.name);
+      count++;
     }
+    console.log(`✓ Behavioral skills installed (MCP-only): ${count} skills`);
   }
 
   const detectedIdes = detectIde();
-  const selectedIde = await selectIde(detectedIdes);
+  const selectedIdes = await selectIde(detectedIdes);
   
-  if (selectedIde === "skip") {
+  if (selectedIdes.includes("skip")) {
     console.log("⚠ Skipping MCP configuration.");
-  } else if (selectedIde === "manual") {
+  } else if (selectedIdes.includes("manual")) {
     printManualConfig();
-  } else {
-    const settingsPath = getMcpSettingsPath(selectedIde);
-    if (settingsPath) {
-      addMcpConfig(settingsPath);
-      console.log("✓ MCP configured for", selectedIde, "at", settingsPath);
-    } else {
-      console.log("⚠ Could not determine config path for", selectedIde);
-      printManualConfig();
+  } else if (selectedIdes.length > 0) {
+    for (const ide of selectedIdes) {
+      const settingsPath = getMcpSettingsPath(ide);
+      if (settingsPath) {
+        addMcpConfig(settingsPath);
+        console.log("✓ MCP configured for", ide, "at", settingsPath);
+      } else {
+        console.log("⚠ Could not determine config path for", ide);
+      }
     }
+  } else {
+    console.log("⚠ No IDE selected.");
   }
 
   printColor("\n=== Installation Complete ===", "1;32");
   printColor("\nNext steps:", "1;33");
-  if (selectedIde === "cline") {
-    printColor("1. Open Cline settings → Custom Instructions");
-    printColor("2. Paste content from: " + path.join(INSTALL_DIR, "workflows/cline.md"));
-  } else if (selectedIde === "roocode") {
-    printColor("1. Create Custom Mode in RooCode: superpowers-orchestrator");
-    printColor("2. Paste content from: " + path.join(INSTALL_DIR, "workflows/roocode.md"));
-  } else if (selectedIde === "claude-desktop") {
-    printColor("1. Restart Claude Desktop to load the MCP server");
-    printColor("2. Check available tools in Claude Desktop");
-  } else if (selectedIde === "manual") {
+  
+  if (selectedIdes.includes("manual")) {
     printColor("1. Add the configuration shown above to your MCP client");
     printColor("2. Restart your MCP client");
-  } else {
+  } else if (selectedIdes.includes("skip") || selectedIdes.length === 0) {
     printColor("1. Configure your IDE using workflow files in: " + path.join(INSTALL_DIR, "workflows/"));
+  } else {
+    if (selectedIdes.includes("cline")) {
+      printColor("\nCline:");
+      printColor("  1. Open Cline settings → Custom Instructions");
+      printColor("  2. Paste content from: " + path.join(INSTALL_DIR, "workflows/cline.md"));
+    }
+    if (selectedIdes.includes("roocode")) {
+      printColor("\nRooCode:");
+      printColor("  1. Create Custom Mode: superpowers-orchestrator");
+      printColor("  2. Paste content from: " + path.join(INSTALL_DIR, "workflows/roocode.md"));
+    }
+    if (selectedIdes.includes("claude-desktop")) {
+      printColor("\nClaude Desktop:");
+      printColor("  1. Restart Claude Desktop to load the MCP server");
+      printColor("  2. Check available tools in Claude Desktop");
+    }
   }
+  
   printColor("\nRoles directory: " + installRolesDir);
   printColor("Public skills (IDE):   " + AGENTS_SKILLS_DIR);
   printColor("Private skills (MCP):  " + PRIVATE_SKILLS_DIR);
