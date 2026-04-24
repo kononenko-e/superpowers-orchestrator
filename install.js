@@ -415,15 +415,14 @@ async function main() {
     printManualConfig();
   } else if (selectedIdes.length > 0) {
     for (const ide of selectedIdes) {
+      // Configure MCP (if IDE supports it)
       const settingsPath = getMcpSettingsPath(ide);
       if (settingsPath) {
         addMcpConfig(settingsPath);
         console.log("✓ MCP configured for", ide, "at", settingsPath);
-      } else {
-        console.log("⚠ Could not determine config path for", ide);
       }
       
-      // Install Orchestrator agent
+      // Install Orchestrator agent (all IDEs)
       let agentSrc, agentDest;
       
       if (ide === "claude-desktop") {
