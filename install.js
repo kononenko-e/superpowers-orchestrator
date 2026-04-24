@@ -25,14 +25,38 @@ function ensureDir(dir) {
   }
 }
 
-function copyDir(src, dest) {
+function copyDir(src, dest, excludeDirs = []) {
   ensureDir(dest);
+  
+  // Handle symlinks: resolve and copy target
+  const stats = fs.lstatSync(src);
+  if (stats.isSymbolicLink()) {
+    const target = fs.readlinkSync(src);
+    const resolvedTarget = path.isAbsolute(target) ? target : path.resolve(path.dirname(src), target);
+    if (fs.existsSync(resolvedTarget)) {
+      copyDir(resolvedTarget, dest, excludeDirs);
+    }
+    return;
+  }
+  
   const entries = fs.readdirSync(src, { withFileTypes: true });
   for (const entry of entries) {
+    // Skip excluded directories
+    if (excludeDirs.includes(entry.name)) {
+      continue;
+    }
+    
     const srcPath = path.join(src, entry.name);
     const destPath = path.join(dest, entry.name);
     if (entry.isDirectory()) {
-      copyDir(srcPath, destPath);
+      copyDir(srcPath, destPath, excludeDirs);
+    } else if (entry.isSymbolicLink()) {
+      // Handle symlinked files
+      const target = fs.readlinkSync(srcPath);
+      const resolvedTarget = path.isAbsolute(target) ? target : path.resolve(path.dirname(srcPath), target);
+      if (fs.existsSync(resolvedTarget)) {
+        fs.copyFileSync(resolvedTarget, destPath);
+      }
     } else {
       fs.copyFileSync(srcPath, destPath);
     }
@@ -153,7 +177,7 @@ async function main() {
 
   if (isSourceInstall) {
     console.log("Installing from source...");
-    copyDir(cwd, INSTALL_DIR);
+    copyDir(cwd, INSTALL_DIR, ['.git', 'node_modules', 'dist', 'roles']);
   } else {
     console.log("Cloning from repository...");
     try {
