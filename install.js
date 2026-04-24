@@ -93,6 +93,24 @@ function detectIde() {
     detected.push("roocode");
   }
   
+  // Cursor
+  const cursorConfigPath = getCursorConfigPath();
+  if (cursorConfigPath && fs.existsSync(cursorConfigPath)) {
+    detected.push("cursor");
+  }
+  
+  // Continue.dev
+  const continueConfigPath = getContinueConfigPath();
+  if (continueConfigPath && fs.existsSync(continueConfigPath)) {
+    detected.push("continue");
+  }
+  
+  // Zed
+  const zedConfigPath = getZedConfigPath();
+  if (zedConfigPath && fs.existsSync(zedConfigPath)) {
+    detected.push("zed");
+  }
+  
   return detected;
 }
 
@@ -107,9 +125,51 @@ function getClaudeDesktopConfigPath() {
   }
 }
 
+function getCursorConfigPath() {
+  const platform = os.platform();
+  if (platform === "darwin") {
+    return path.join(os.homedir(), "Library/Application Support/Cursor/User/globalStorage/mcp.json");
+  } else if (platform === "win32") {
+    return path.join(os.homedir(), "AppData/Roaming/Cursor/User/globalStorage/mcp.json");
+  } else {
+    return path.join(os.homedir(), ".config/Cursor/User/globalStorage/mcp.json");
+  }
+}
+
+function getContinueConfigPath() {
+  const platform = os.platform();
+  if (platform === "darwin") {
+    return path.join(os.homedir(), ".continue/config.json");
+  } else if (platform === "win32") {
+    return path.join(os.homedir(), ".continue/config.json");
+  } else {
+    return path.join(os.homedir(), ".continue/config.json");
+  }
+}
+
+function getZedConfigPath() {
+  const platform = os.platform();
+  if (platform === "darwin") {
+    return path.join(os.homedir(), ".config/zed/settings.json");
+  } else if (platform === "win32") {
+    return path.join(os.homedir(), "AppData/Roaming/Zed/settings.json");
+  } else {
+    return path.join(os.homedir(), ".config/zed/settings.json");
+  }
+}
+
 function getMcpSettingsPath(ide) {
   if (ide === "claude-desktop") {
     return getClaudeDesktopConfigPath();
+  }
+  if (ide === "cursor") {
+    return getCursorConfigPath();
+  }
+  if (ide === "continue") {
+    return getContinueConfigPath();
+  }
+  if (ide === "zed") {
+    return getZedConfigPath();
   }
   
   const base = path.join(os.homedir(), "Library/Application Support/Code/User/globalStorage");
@@ -127,6 +187,9 @@ async function selectIde(detectedIdes) {
     { title: "Claude Desktop", value: "claude-desktop", selected: detectedIdes.includes("claude-desktop") },
     { title: "Cline (VS Code)", value: "cline", selected: detectedIdes.includes("cline") },
     { title: "RooCode (VS Code)", value: "roocode", selected: detectedIdes.includes("roocode") },
+    { title: "Cursor", value: "cursor", selected: detectedIdes.includes("cursor") },
+    { title: "Continue.dev", value: "continue", selected: detectedIdes.includes("continue") },
+    { title: "Zed", value: "zed", selected: detectedIdes.includes("zed") },
   ];
   
   const response = await prompts({
@@ -171,6 +234,9 @@ function printManualConfig() {
   console.log(JSON.stringify(config, null, 2));
   console.log("\n\x1b[36mConfig file locations:\x1b[0m");
   console.log("  Claude Desktop: " + getClaudeDesktopConfigPath());
+  console.log("  Cursor: " + getCursorConfigPath());
+  console.log("  Continue.dev: " + getContinueConfigPath());
+  console.log("  Zed: " + getZedConfigPath());
   console.log("  Cline: ~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json");
   console.log("  RooCode: ~/Library/Application Support/Code/User/globalStorage/rooveterinaryinc.roo-cline/settings/mcp_settings.json");
 }
@@ -350,6 +416,11 @@ async function main() {
   } else if (selectedIdes.includes("skip") || selectedIdes.length === 0) {
     printColor("1. Configure your IDE using workflow files in: " + path.join(INSTALL_DIR, "workflows/"));
   } else {
+    if (selectedIdes.includes("claude-desktop")) {
+      printColor("\nClaude Desktop:");
+      printColor("  1. Restart Claude Desktop to load the MCP server");
+      printColor("  2. Check available tools in Claude Desktop");
+    }
     if (selectedIdes.includes("cline")) {
       printColor("\nCline:");
       printColor("  1. Open Cline settings → Custom Instructions");
@@ -360,10 +431,20 @@ async function main() {
       printColor("  1. Create Custom Mode: superpowers-orchestrator");
       printColor("  2. Paste content from: " + path.join(INSTALL_DIR, "workflows/roocode.md"));
     }
-    if (selectedIdes.includes("claude-desktop")) {
-      printColor("\nClaude Desktop:");
-      printColor("  1. Restart Claude Desktop to load the MCP server");
-      printColor("  2. Check available tools in Claude Desktop");
+    if (selectedIdes.includes("cursor")) {
+      printColor("\nCursor:");
+      printColor("  1. Restart Cursor to load the MCP server");
+      printColor("  2. Access MCP tools via Cursor's AI features");
+    }
+    if (selectedIdes.includes("continue")) {
+      printColor("\nContinue.dev:");
+      printColor("  1. Restart VS Code to load the MCP server");
+      printColor("  2. Access tools via Continue extension");
+    }
+    if (selectedIdes.includes("zed")) {
+      printColor("\nZed:");
+      printColor("  1. Restart Zed to load the MCP server");
+      printColor("  2. Access MCP tools via Zed's assistant");
     }
   }
   
