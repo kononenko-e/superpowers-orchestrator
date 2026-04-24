@@ -427,28 +427,28 @@ async function main() {
       let agentSrc, agentDest;
       
       if (ide === "claude-desktop") {
-        agentSrc = path.join(cwd, "agents", "copilot");
+        agentSrc = path.join(INSTALL_DIR, "agents", "copilot");
         agentDest = path.join(os.homedir(), ".github", "agents");
       } else if (ide === "claude-code") {
-        agentSrc = path.join(cwd, "agents", "claude-code");
+        agentSrc = path.join(INSTALL_DIR, "agents", "claude-code");
         agentDest = path.join(os.homedir(), ".claude", "agents");
       } else if (ide === "cline") {
-        agentSrc = path.join(cwd, "agents", "cline");
+        agentSrc = path.join(INSTALL_DIR, "agents", "cline");
         agentDest = path.join(os.homedir(), "Documents", "Cline", "Workflows");
       } else if (ide === "roocode") {
-        agentSrc = path.join(cwd, "agents", "roocode");
+        agentSrc = path.join(INSTALL_DIR, "agents", "roocode");
         agentDest = path.join(os.homedir(), ".roo-cline", "custom-modes");
       } else if (ide === "cursor") {
-        agentSrc = path.join(cwd, "agents", "cursor");
+        agentSrc = path.join(INSTALL_DIR, "agents", "cursor");
         agentDest = path.join(cwd, ".cursor", "rules");
       } else if (ide === "windsurf") {
-        agentSrc = path.join(cwd, "agents", "windsurf");
+        agentSrc = path.join(INSTALL_DIR, "agents", "windsurf");
         agentDest = cwd;
       } else if (ide === "opencode") {
-        agentSrc = path.join(cwd, "agents", "opencode");
+        agentSrc = path.join(INSTALL_DIR, "agents", "opencode");
         agentDest = path.join(cwd, ".opencode", "agent");
       } else if (ide === "qwen") {
-        agentSrc = path.join(cwd, "agents", "qwen");
+        agentSrc = path.join(INSTALL_DIR, "agents", "qwen");
         agentDest = path.join(os.homedir(), ".qwen", "agents");
       }
       
