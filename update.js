@@ -157,7 +157,6 @@ function getWorkflowFile(ide) {
   const map = {
     "cline": "cline.md",
     "roocode": "roocode.md",
-    "windsurf": "windsurf.md",
   };
   return map[ide] || null;
 }
