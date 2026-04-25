@@ -149,14 +149,42 @@ git worktree remove <worktree-path>
 
 **For Option 3:** Keep worktree.
 
+### Step 6: Post-merge Local Cleanup
+
+**Trigger:** User returns after merging PR on GitHub and deleting remote
+branch via GitHub "Delete branch" button.
+
+At this point remote branch is gone, but **local branch still exists**.
+Offer cleanup:
+
+```bash
+# Switch to base branch and pull merged changes
+git checkout <base-branch>
+git pull
+
+# Delete local feature branch (safe: -d only deletes if fully merged)
+git branch -d <feature-branch>
+
+# Prune stale remote tracking references
+git remote prune origin
+```
+
+If worktree still exists (was kept via Option 3):
+```bash
+git worktree remove <worktree-path>
+```
+
+**Don't auto-execute** — ask user: "PR merged on GitHub. Clean up local
+branch `<name>`?" Proceed only on confirmation.
+
 ## Quick Reference
 
-| Option | Merge | Push | Keep Worktree | Cleanup Branch |
-|--------|-------|------|---------------|----------------|
-| 1. Merge locally | ✓ | - | - | ✓ |
-| 2. Create PR | - | ✓ | ✓ | - |
-| 3. Keep as-is | - | - | ✓ | - |
-| 4. Discard | - | - | - | ✓ (force) |
+| Option | Merge | Push | Keep Worktree | Cleanup Branch | Post-merge Local Cleanup |
+|--------|-------|------|---------------|----------------|--------------------------|
+| 1. Merge locally | ✓ | - | - | ✓ | N/A (already done) |
+| 2. Create PR | - | ✓ (-u) | - | - | ✓ (after user merges) |
+| 3. Keep as-is | - | - | ✓ | - | ✓ (if user merges later) |
+| 4. Discard | - | - | - | ✓ (force) | N/A (already done) |
 
 ## Common Mistakes
 
@@ -175,6 +203,14 @@ git worktree remove <worktree-path>
 **No confirmation for discard**
 - **Problem:** Accidentally delete work
 - **Fix:** Require typed "discard" confirmation
+
+**Forgetting `-u` on first push**
+- **Problem:** `git push origin <branch>` without `-u` — no upstream tracking, VS Code shows branch as unpublished
+- **Fix:** Always use `git push -u origin <branch>` on first push; subsequent pushes use plain `git push`
+
+**Stale local branch after PR merge**
+- **Problem:** User merges PR on GitHub and deletes remote branch, but local branch remains forever
+- **Fix:** Offer Step 6 (Post-merge Local Cleanup) when user returns after merge
 
 ## Red Flags
 

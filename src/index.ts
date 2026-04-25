@@ -6,8 +6,11 @@ async function main(): Promise<void> {
   const args = process.argv.slice(2);
 
   if (args.includes("--update")) {
-    console.error("Use 'superagents-mcp --update' or run update.js directly.");
-    process.exit(1);
+    const { spawn } = await import("node:child_process");
+    const updateScript = new URL("../update.js", import.meta.url).pathname;
+    const child = spawn("node", [updateScript], { stdio: "inherit" });
+    child.on("close", (code) => process.exit(code ?? 0));
+    return;
   }
 
   if (args.includes("--reload")) {

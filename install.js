@@ -10,10 +10,13 @@ import os from "node:os";
 import { execSync } from "node:child_process";
 import prompts from "prompts";
 
-const REPO_URL = "https://github.com/kononenko/superpowers-orchestrator.git";
+const REPO_URL = "https://github.com/kononenko-e/superpowers-orchestrator.git";
 const INSTALL_DIR = path.join(os.homedir(), ".superpowers-orchestrator");
-const ROLES_SOURCE = path.join(process.cwd(), "roles");
-const SKILLS_SOURCE = path.join(process.cwd(), "skills");
+// After clone/copy, all source files are in INSTALL_DIR — paths resolve from there.
+const ROLES_SOURCE = path.join(INSTALL_DIR, "roles");
+const SKILLS_SOURCE = path.join(INSTALL_DIR, "skills");
+const AGENTS_SOURCE = path.join(INSTALL_DIR, "agents");
+const WORKFLOWS_SOURCE = path.join(INSTALL_DIR, "workflows");
 const AGENTS_SKILLS_DIR = path.join(os.homedir(), ".agents", "skills");
 const PRIVATE_SKILLS_DIR = path.join(INSTALL_DIR, "skills", "behavioral");
 
@@ -122,8 +125,10 @@ function detectIde() {
     detected.push("zed");
   }
   
-  // Windsurf - check in current directory
-  detected.push("windsurf");
+  // Windsurf
+  if (fs.existsSync(path.join(os.homedir(), ".codeium", "windsurf"))) {
+    detected.push("windsurf");
+  }
   
   // OpenCode - check in current directory
   detected.push("opencode");
@@ -195,6 +200,9 @@ function getMcpSettingsPath(ide) {
   }
   if (ide === "zed") {
     return getZedConfigPath();
+  }
+  if (ide === "windsurf") {
+    return path.join(os.homedir(), ".codeium", "windsurf", "mcp_config.json");
   }
   
   const base = path.join(os.homedir(), "Library/Application Support/Code/User/globalStorage");
@@ -269,6 +277,7 @@ function printManualConfig() {
   console.log("  Zed: " + getZedConfigPath());
   console.log("  Cline: ~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json");
   console.log("  RooCode: ~/Library/Application Support/Code/User/globalStorage/rooveterinaryinc.roo-cline/settings/mcp_settings.json");
+  console.log("  Windsurf: ~/.codeium/windsurf/mcp_config.json");
 }
 
 function getBinDir() {
@@ -364,23 +373,32 @@ async function main() {
   const platform = os.platform();
   console.log("✓ OS:", platform);
 
-  ensureDir(INSTALL_DIR);
   console.log("✓ Install dir:", INSTALL_DIR);
 
   const cwd = process.cwd();
+  const cwdIsInstallDir = path.resolve(cwd) === path.resolve(INSTALL_DIR);
   const isSourceInstall = fs.existsSync(path.join(cwd, "src", "index.ts"));
 
-  if (isSourceInstall) {
+  if (cwdIsInstallDir) {
+    // Already running from the install directory (e.g. user cloned directly here)
+    console.log("Running from install directory — skipping copy/clone.");
+  } else if (isSourceInstall) {
+    // Running from a source checkout elsewhere — copy to INSTALL_DIR
     console.log("Installing from source...");
+    ensureDir(INSTALL_DIR);
     copyDir(cwd, INSTALL_DIR, ['.git', 'node_modules', 'dist', 'roles']);
-  } else {
-    console.log("Cloning from repository...");
+  } else if (!fs.existsSync(INSTALL_DIR)) {
+    // No source, no install dir — clone from GitHub
+    console.log("Cloning from GitHub...");
     try {
       execSync(`git clone "${REPO_URL}" "${INSTALL_DIR}"`, { stdio: "inherit" });
     } catch (e) {
       console.error("Failed to clone repository:", e.message);
       process.exit(1);
     }
+  } else {
+    // INSTALL_DIR already exists but we're not running from it
+    console.log("Install directory already exists — reusing.");
   }
 
   console.log("\nBuilding MCP server...");
@@ -470,7 +488,7 @@ async function main() {
         agentDest = path.join(cwd, ".cursor", "rules");
       } else if (ide === "windsurf") {
         agentSrc = path.join(INSTALL_DIR, "agents", "windsurf");
-        agentDest = cwd;
+        agentDest = path.join(os.homedir(), ".codeium", "windsurf", "global_workflows");
       } else if (ide === "opencode") {
         agentSrc = path.join(INSTALL_DIR, "agents", "opencode");
         agentDest = path.join(cwd, ".opencode", "agent");
@@ -533,6 +551,12 @@ async function main() {
       printColor("\nZed:");
       printColor("  1. Restart Zed to load the MCP server");
       printColor("  2. Access MCP tools via Zed's assistant");
+    }
+    if (selectedIdes.includes("windsurf")) {
+      printColor("\nWindsurf:");
+      printColor("  1. Restart Windsurf to load the MCP server");
+      printColor("  2. The orchestrator workflow is installed in global_workflows");
+      printColor("  3. Skills super-orchestrator and caveman are available globally");
     }
   }
   

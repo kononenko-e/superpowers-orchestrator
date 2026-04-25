@@ -447,9 +447,9 @@ worktree/ветки) и
 1. Feature branch per task (Feature/Refactor).
 2. Issue branch per bug (`fix/issue-<N>-<slug>`).
 3. Atomic commits, Conventional Commits (`type(scope): subject`).
-4. Push в remote после каждого коммита.
+4. Push в remote после каждого коммита. **Первый push — обязательно `git push -u origin <branch>`** (установить upstream tracking), последующие — `git push`.
 5. PR-based merge (merge делает пользователь).
-6. Branch cleanup по запросу пользователя.
+6. Branch cleanup: remote-ветку удаляет пользователь через кнопку GitHub после merge; локальные ветки + worktrees от смёрженных PR зачищаются **автоматически** при старте следующей задачи (Step 0, скилл `using-git-worktrees` — секция Stale Branch Cleanup). Отдельное подтверждение не требуется.
 
 **Интеграция с маршрутами:**
 

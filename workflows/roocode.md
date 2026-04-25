@@ -43,7 +43,6 @@ system_prompt: |
 
   | Режим | Назначение | Дефолтная роль |
   |-------|-----------|----------------|
-  | `orchestrator` | Триаж, декомпозиция, делегирование | `agents-orchestrator` |
   | `brainstorm` | Обсуждение альтернатив | `product-manager` |
   | `architect` | Спецификация, планирование | `engineering-software-architect` |
   | `code` | Написание кода | по контексту |

@@ -72,6 +72,34 @@ Per Jesse's rule "Fix broken things immediately":
 
 No .gitignore verification needed - outside project entirely.
 
+## Stale Branch Cleanup
+
+**Before creating a new worktree, clean up branches from completed PRs.**
+This removes local branches whose remote was deleted (user merged PR on
+GitHub and clicked "Delete branch"), preventing stale branches from
+accumulating.
+
+```bash
+# Fetch latest remote state and prune deleted remote branches
+git fetch --prune
+
+# Find local branches whose upstream tracking branch no longer exists
+git branch -vv | grep ': gone]' | grep -v '^\*' | awk '{print $1}'
+```
+
+**For each stale branch found:**
+1. Verify it's not the current branch (already excluded by `grep -v '^\*'`)
+2. Check if worktree exists for it: `git worktree list | grep <branch>`
+3. If worktree exists: `git worktree remove <worktree-path>`
+4. Delete local branch: `git branch -d <branch>` (safe — won't delete unmerged)
+5. If `-d` fails (unmerged): leave it, report to user
+
+**Report:** "Cleaned up <N> stale branches: <list>. <M> unmerged branches kept: <list>."
+
+**Don't ask user** — this is safe housekeeping. Branches with `: gone]`
+tracking are from PRs already merged and remote-deleted. `-d` flag
+prevents deleting unmerged work.
+
 ## Creation Steps
 
 ### 1. Detect Project Name
@@ -151,6 +179,7 @@ Ready to implement <feature-name>
 | Neither exists | Check CLAUDE.md → Ask user |
 | Directory not ignored | Add to .gitignore + commit |
 | Tests fail during baseline | Report failures + ask |
+| Stale branches found | Auto-clean (gone remote + merged) |
 | No package.json/Cargo.toml | Skip dependency install |
 
 ## Common Mistakes
