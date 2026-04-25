@@ -301,7 +301,7 @@ function createBinWrapper(binDir) {
   }
 }
 
-function addMcpConfig(settingsPath) {
+function addMcpConfig(settingsPath, ide = null) {
   let config = {};
   if (fs.existsSync(settingsPath)) {
     try {
@@ -311,18 +311,36 @@ function addMcpConfig(settingsPath) {
     }
   }
 
-  if (!config.mcpServers) {
-    config.mcpServers = {};
-  }
+  // GitHub Copilot uses "servers" instead of "mcpServers"
+  if (ide === "github-copilot") {
+    if (!config.servers) {
+      config.servers = {};
+    }
+    
+    config.servers["superagents-mcp"] = {
+      type: "stdio",
+      command: "superagents-mcp",
+      args: [],
+      env: {
+        SUPERPOWERS_ROLES_PATH: path.join(INSTALL_DIR, "roles"),
+        SUPERPOWERS_SKILLS_PATH: PRIVATE_SKILLS_DIR,
+      },
+    };
+  } else {
+    // Standard MCP format for other IDEs
+    if (!config.mcpServers) {
+      config.mcpServers = {};
+    }
 
-  config.mcpServers["superagents-mcp"] = {
-    command: "superagents-mcp",
-    args: [],
-    env: {
-      SUPERPOWERS_ROLES_PATH: path.join(INSTALL_DIR, "roles"),
-      SUPERPOWERS_SKILLS_PATH: PRIVATE_SKILLS_DIR,
-    },
-  };
+    config.mcpServers["superagents-mcp"] = {
+      command: "superagents-mcp",
+      args: [],
+      env: {
+        SUPERPOWERS_ROLES_PATH: path.join(INSTALL_DIR, "roles"),
+        SUPERPOWERS_SKILLS_PATH: PRIVATE_SKILLS_DIR,
+      },
+    };
+  }
 
   ensureDir(path.dirname(settingsPath));
   fs.writeFileSync(settingsPath, JSON.stringify(config, null, 2));
@@ -428,7 +446,7 @@ async function main() {
       // Configure MCP (if IDE supports it)
       const settingsPath = getMcpSettingsPath(ide);
       if (settingsPath) {
-        addMcpConfig(settingsPath);
+        addMcpConfig(settingsPath, ide);
         console.log("✓ MCP configured for", ide, "at", settingsPath);
       }
       
