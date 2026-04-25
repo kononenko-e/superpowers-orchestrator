@@ -88,6 +88,12 @@ function detectIde() {
     detected.push("claude-code");
   }
   
+  // GitHub Copilot
+  const copilotConfigPath = path.join(os.homedir(), "Library/Application Support/Code/User/mcp.json");
+  if (fs.existsSync(copilotConfigPath)) {
+    detected.push("github-copilot");
+  }
+  
   // Cline
   if (process.env.CLINE_PATH || fs.existsSync(path.join(os.homedir(), "Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev"))) {
     detected.push("cline");
@@ -178,6 +184,9 @@ function getMcpSettingsPath(ide) {
   if (ide === "claude-desktop") {
     return getClaudeDesktopConfigPath();
   }
+  if (ide === "github-copilot") {
+    return path.join(os.homedir(), "Library/Application Support/Code/User/mcp.json");
+  }
   if (ide === "cursor") {
     return getCursorConfigPath();
   }
@@ -202,6 +211,7 @@ async function selectIde(detectedIdes) {
   const choices = [
     { title: "Claude Desktop", value: "claude-desktop", selected: detectedIdes.includes("claude-desktop") },
     { title: "Claude Code", value: "claude-code", selected: detectedIdes.includes("claude-code") },
+    { title: "GitHub Copilot (VS Code)", value: "github-copilot", selected: detectedIdes.includes("github-copilot") },
     { title: "Cline (VS Code)", value: "cline", selected: detectedIdes.includes("cline") },
     { title: "RooCode (VS Code)", value: "roocode", selected: detectedIdes.includes("roocode") },
     { title: "Cursor", value: "cursor", selected: detectedIdes.includes("cursor") },
@@ -425,7 +435,7 @@ async function main() {
       // Install Orchestrator agent (all IDEs)
       let agentSrc, agentDest;
       
-      if (ide === "claude-desktop") {
+      if (ide === "claude-desktop" || ide === "github-copilot") {
         agentSrc = path.join(INSTALL_DIR, "agents", "copilot");
         agentDest = path.join(os.homedir(), ".github", "agents");
       } else if (ide === "claude-code") {
