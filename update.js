@@ -294,6 +294,9 @@ async function main() {
   if (fs.existsSync(gitDir)) {
     printColor("Step 1/6: Pulling latest changes from git...", "36");
     try {
+      // Reset any local changes so git pull won't conflict
+      execSync("git checkout -- .", { cwd: INSTALL_DIR, stdio: "pipe" });
+      execSync("git clean -fd", { cwd: INSTALL_DIR, stdio: "pipe" });
       execSync("git pull", { cwd: INSTALL_DIR, stdio: "inherit" });
     } catch (e) {
       console.error("Git pull failed:", e.message);
