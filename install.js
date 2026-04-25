@@ -15,8 +15,6 @@ const INSTALL_DIR = path.join(os.homedir(), ".superpowers-orchestrator");
 // After clone/copy, all source files are in INSTALL_DIR — paths resolve from there.
 const ROLES_SOURCE = path.join(INSTALL_DIR, "roles");
 const SKILLS_SOURCE = path.join(INSTALL_DIR, "skills");
-const AGENTS_SOURCE = path.join(INSTALL_DIR, "agents");
-const WORKFLOWS_SOURCE = path.join(INSTALL_DIR, "workflows");
 const AGENTS_SKILLS_DIR = path.join(os.homedir(), ".agents", "skills");
 const PRIVATE_SKILLS_DIR = path.join(INSTALL_DIR, "skills", "behavioral");
 
@@ -520,7 +518,7 @@ async function main() {
     printColor("1. Add the configuration shown above to your MCP client");
     printColor("2. Restart your MCP client");
   } else if (selectedIdes.includes("skip") || selectedIdes.length === 0) {
-    printColor("1. Configure your IDE using workflow files in: " + path.join(INSTALL_DIR, "workflows/"));
+    printColor("1. Configure your IDE using agent files in: " + path.join(INSTALL_DIR, "agents/"));
   } else {
     if (selectedIdes.includes("claude-desktop")) {
       printColor("\nClaude Desktop:");
@@ -530,12 +528,12 @@ async function main() {
     if (selectedIdes.includes("cline")) {
       printColor("\nCline:");
       printColor("  1. Open Cline settings → Custom Instructions");
-      printColor("  2. Paste content from: " + path.join(INSTALL_DIR, "workflows/cline.md"));
+      printColor("  2. Orchestrator agent installed in Workflows directory");
     }
     if (selectedIdes.includes("roocode")) {
       printColor("\nRooCode:");
       printColor("  1. Create Custom Mode: superpowers-orchestrator");
-      printColor("  2. Paste content from: " + path.join(INSTALL_DIR, "workflows/roocode.md"));
+      printColor("  2. Orchestrator custom mode installed");
     }
     if (selectedIdes.includes("cursor")) {
       printColor("\nCursor:");

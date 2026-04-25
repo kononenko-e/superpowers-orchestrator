@@ -17,8 +17,6 @@ const INSTALL_DIR = path.join(os.homedir(), ".superpowers-orchestrator");
 // so the update command works from any directory.
 const ROLES_SOURCE = path.join(INSTALL_DIR, "roles");
 const SKILLS_SOURCE = path.join(INSTALL_DIR, "skills");
-const AGENTS_SOURCE = path.join(INSTALL_DIR, "agents");
-const WORKFLOWS_SOURCE = path.join(INSTALL_DIR, "workflows");
 const AGENTS_SKILLS_DIR = path.join(os.homedir(), ".agents", "skills");
 const PRIVATE_SKILLS_DIR = path.join(INSTALL_DIR, "skills", "behavioral");
 const PUBLIC_SKILLS = new Set(["super-orchestrator", "caveman"]);
@@ -151,14 +149,6 @@ function getAgentSourceDir(ide) {
   const dir = map[ide];
   if (!dir) return null;
   return path.join(INSTALL_DIR, "agents", dir);
-}
-
-function getWorkflowFile(ide) {
-  const map = {
-    "cline": "cline.md",
-    "roocode": "roocode.md",
-  };
-  return map[ide] || null;
 }
 
 // ---------------------------------------------------------------------------
@@ -549,17 +539,6 @@ async function main() {
       }
     }
 
-    // Workflows (copy workflow .md to agent dest if applicable)
-    const workflowFile = getWorkflowFile(ide);
-    if (workflowFile) {
-      const srcPath = path.join(WORKFLOWS_SOURCE, workflowFile);
-      const agentDestDir = getAgentDest(ide);
-      if (fs.existsSync(srcPath) && agentDestDir) {
-        ensureDir(agentDestDir);
-        fs.copyFileSync(srcPath, path.join(agentDestDir, workflowFile));
-        console.log(`✓ ${ideLabels[ide]}: Workflow updated`);
-      }
-    }
   }
 
   // ── Done ────────────────────────────────────────────────────────────────
