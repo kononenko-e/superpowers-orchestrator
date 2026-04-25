@@ -56,11 +56,24 @@
 ## Пошаговое руководство по работе
 
 ### Техническая настройка
-1. **Установка**: Выполните скрипт установки, чтобы зарегистрировать MCP-сервер в вашей IDE (VS Code, Cline, RooCode).
+
+1. **Установка** (одна команда — автоматически клонирует, собирает и настраивает):
    ```bash
-   node install.js
+   curl -fsSL https://raw.githubusercontent.com/kononenko-e/superpowers-orchestrator/main/bootstrap.sh | sh
    ```
-2. **Проверка**: Убедитесь, что в настройках MCP вашей IDE появился сервер `superagents-mcp`.
+
+   Или вручную:
+   ```bash
+   git clone https://github.com/kononenko-e/superpowers-orchestrator.git ~/.superpowers-orchestrator
+   cd ~/.superpowers-orchestrator && node install.js
+   ```
+
+2. **Обновление** (работает из любой директории):
+   ```bash
+   superagents-mcp --update
+   ```
+
+3. **Проверка**: Убедитесь, что в настройках MCP вашей IDE появился сервер `superagents-mcp`.
 
 ### Взаимодействие в чате
 1. **Постановка задачи**: Опишите задачу максимально четко. Оркестратор сам определит сложность.
