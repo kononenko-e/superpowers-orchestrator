@@ -20,6 +20,8 @@ const PRIVATE_SKILLS_DIR = path.join(INSTALL_DIR, "skills", "behavioral");
 
 // Skills exposed to the IDE/agent UI globally.
 const PUBLIC_SKILLS = new Set(["super-orchestrator", "caveman"]);
+// Extra skills that should also be available via MCP `get_skill`.
+const MCP_EXTRA_SKILLS = new Set(["caveman"]);
 
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) {
@@ -448,6 +450,15 @@ async function main() {
       count++;
     }
     console.log(`✓ Behavioral skills installed (MCP-only): ${count} skills`);
+  }
+
+  // Ensure selected extra skills are available via MCP `get_skill`
+  for (const skillName of MCP_EXTRA_SKILLS) {
+    const src = path.join(SKILLS_SOURCE, skillName);
+    if (fs.existsSync(src)) {
+      copyDir(src, path.join(PRIVATE_SKILLS_DIR, skillName));
+      console.log("✓ MCP skill installed:", skillName);
+    }
   }
 
   const detectedIdes = detectIde();

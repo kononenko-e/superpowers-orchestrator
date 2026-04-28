@@ -20,6 +20,8 @@ const SKILLS_SOURCE = path.join(INSTALL_DIR, "skills");
 const AGENTS_SKILLS_DIR = path.join(os.homedir(), ".agents", "skills");
 const PRIVATE_SKILLS_DIR = path.join(INSTALL_DIR, "skills", "behavioral");
 const PUBLIC_SKILLS = new Set(["super-orchestrator", "caveman"]);
+// Extra skills that should also be available via MCP `get_skill`.
+const MCP_EXTRA_SKILLS = new Set(["caveman"]);
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -492,6 +494,15 @@ async function main() {
           );
         }
         console.log(`✓ Behavioral skills updated (${entries.filter(e => e.isDirectory()).length} skills)`);
+      }
+
+      // Ensure selected extra skills are available via MCP `get_skill`
+      for (const skillName of MCP_EXTRA_SKILLS) {
+        const src = path.join(SKILLS_SOURCE, skillName);
+        if (fs.existsSync(src)) {
+          copyDir(src, path.join(PRIVATE_SKILLS_DIR, skillName));
+          console.log(`✓ MCP skill updated: ${skillName}`);
+        }
       }
     }
 
