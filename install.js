@@ -112,6 +112,13 @@ function detectIde() {
   if (cursorConfigPath && fs.existsSync(cursorConfigPath)) {
     detected.push("cursor");
   }
+
+  // Kilo Code
+  const kiloConfigPath = getKiloConfigPath();
+  const kiloAgentDir = getKiloAgentDir();
+  if ((kiloConfigPath && fs.existsSync(kiloConfigPath)) || fs.existsSync(kiloAgentDir)) {
+    detected.push("kilo");
+  }
   
   // Continue.dev
   const continueConfigPath = getContinueConfigPath();
@@ -185,6 +192,18 @@ function getZedConfigPath() {
   }
 }
 
+function getKiloConfigPath() {
+  const platform = os.platform();
+  if (platform === "win32") {
+    return path.join(os.homedir(), "AppData/Roaming/kilo/kilo.jsonc");
+  }
+  return path.join(os.homedir(), ".config/kilo/kilo.jsonc");
+}
+
+function getKiloAgentDir() {
+  return path.join(os.homedir(), ".config/kilo/agent");
+}
+
 function getMcpSettingsPath(ide) {
   if (ide === "claude-desktop") {
     return getClaudeDesktopConfigPath();
@@ -203,6 +222,9 @@ function getMcpSettingsPath(ide) {
   }
   if (ide === "windsurf") {
     return path.join(os.homedir(), ".codeium", "windsurf", "mcp_config.json");
+  }
+  if (ide === "kilo") {
+    return getKiloConfigPath();
   }
   
   const base = path.join(os.homedir(), "Library/Application Support/Code/User/globalStorage");
@@ -223,6 +245,7 @@ async function selectIde(detectedIdes) {
     { title: "Cline (VS Code)", value: "cline", selected: detectedIdes.includes("cline") },
     { title: "RooCode (VS Code)", value: "roocode", selected: detectedIdes.includes("roocode") },
     { title: "Cursor", value: "cursor", selected: detectedIdes.includes("cursor") },
+    { title: "Kilo Code", value: "kilo", selected: detectedIdes.includes("kilo") },
     { title: "Continue.dev", value: "continue", selected: detectedIdes.includes("continue") },
     { title: "Zed", value: "zed", selected: detectedIdes.includes("zed") },
     { title: "Windsurf", value: "windsurf", selected: detectedIdes.includes("windsurf") },
@@ -266,13 +289,31 @@ function printManualConfig() {
       },
     },
   };
+  const kiloConfig = {
+    mcp: {
+      "superagents-mcp": {
+        type: "local",
+        command: ["superagents-mcp"],
+        environment: {
+          SUPERPOWERS_ROLES_PATH: path.join(INSTALL_DIR, "roles"),
+          SUPERPOWERS_SKILLS_PATH: PRIVATE_SKILLS_DIR,
+        },
+        enabled: true,
+        timeout: 10000,
+      },
+    },
+  };
   
   console.log("\n\x1b[1;36m=== Manual MCP Configuration ===\x1b[0m");
   console.log("\nAdd this to your MCP client config file:\n");
   console.log(JSON.stringify(config, null, 2));
+  console.log("\nKilo Code uses `mcp` in ~/.config/kilo/kilo.jsonc:\n");
+  console.log(JSON.stringify(kiloConfig, null, 2));
   console.log("\n\x1b[36mConfig file locations:\x1b[0m");
   console.log("  Claude Desktop: " + getClaudeDesktopConfigPath());
   console.log("  Cursor: " + getCursorConfigPath());
+  console.log("  Kilo Code: " + getKiloConfigPath());
+  console.log("  Kilo global agents: " + getKiloAgentDir());
   console.log("  Continue.dev: " + getContinueConfigPath());
   console.log("  Zed: " + getZedConfigPath());
   console.log("  Cline: ~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json");
@@ -334,6 +375,21 @@ function addMcpConfig(settingsPath, ide = null) {
         SUPERPOWERS_ROLES_PATH: path.join(INSTALL_DIR, "roles"),
         SUPERPOWERS_SKILLS_PATH: PRIVATE_SKILLS_DIR,
       },
+    };
+  } else if (ide === "kilo") {
+    if (!config.mcp) {
+      config.mcp = {};
+    }
+
+    config.mcp["superagents-mcp"] = {
+      type: "local",
+      command: ["superagents-mcp"],
+      environment: {
+        SUPERPOWERS_ROLES_PATH: path.join(INSTALL_DIR, "roles"),
+        SUPERPOWERS_SKILLS_PATH: PRIVATE_SKILLS_DIR,
+      },
+      enabled: true,
+      timeout: 10000,
     };
   } else {
     // Standard MCP format for other IDEs
@@ -495,6 +551,9 @@ async function main() {
       } else if (ide === "cursor") {
         agentSrc = path.join(INSTALL_DIR, "agents", "cursor");
         agentDest = path.join(cwd, ".cursor", "rules");
+      } else if (ide === "kilo") {
+        agentSrc = path.join(INSTALL_DIR, "agents", "kilo-code");
+        agentDest = path.join(os.homedir(), ".config", "kilo", "agent");
       } else if (ide === "windsurf") {
         agentSrc = path.join(INSTALL_DIR, "agents", "windsurf");
         agentDest = path.join(os.homedir(), ".codeium", "windsurf", "global_workflows");
@@ -550,6 +609,12 @@ async function main() {
       printColor("\nCursor:");
       printColor("  1. Restart Cursor to load the MCP server");
       printColor("  2. Access MCP tools via Cursor's AI features");
+    }
+    if (selectedIdes.includes("kilo")) {
+      printColor("\nKilo Code:");
+      printColor("  1. Restart Kilo Code to load the MCP server");
+      printColor("  2. The Superpowers Orchestrator agent is installed in ~/.config/kilo/agent");
+      printColor("  3. MCP config is written to ~/.config/kilo/kilo.jsonc");
     }
     if (selectedIdes.includes("continue")) {
       printColor("\nContinue.dev:");

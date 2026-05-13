@@ -1,6 +1,10 @@
 # Spec Compliance Reviewer Prompt Template
 
-Use this template when dispatching a spec compliance reviewer subagent.
+Use this as an addendum when dispatching a spec compliance reviewer subagent.
+
+If this is called by `super-orchestrator`, first apply the `super-orchestrator`
+Prompt Contract: role id, host mode, required skills, boundaries, task text and
+report format. This file adds spec-review-specific instructions only.
 
 **Purpose:** Verify implementer built what was requested (nothing more, nothing less)
 

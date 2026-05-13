@@ -1,6 +1,10 @@
 # Implementer Subagent Prompt Template
 
-Use this template when dispatching an implementer subagent.
+Use this as an addendum when dispatching an implementer subagent.
+
+If this is called by `super-orchestrator`, first apply the `super-orchestrator`
+Prompt Contract: role id, host mode, required skills, boundaries, task text and
+report format. This file adds implementer-specific instructions only.
 
 ```
 Task tool (general-purpose):

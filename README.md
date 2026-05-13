@@ -75,6 +75,8 @@
 
 3. **Проверка**: Убедитесь, что в настройках MCP вашей IDE появился сервер `superagents-mcp`.
 
+Для Kilo Code установщик также создаст глобальный агент в `~/.config/kilo/agent` и добавит MCP-сервер в `~/.config/kilo/kilo.jsonc`.
+
 ### Взаимодействие в чате
 1. **Постановка задачи**: Опишите задачу максимально четко. Оркестратор сам определит сложность.
    - *Плохо*: «Сделай сайт».
@@ -85,12 +87,13 @@
 ## Примеры взаимодействия с агентами
 
 ### Вызов роли через MCP
-Когда Оркестратор делегирует задачу, он использует инструменты MCP:
+Когда Оркестратор делегирует задачу, он передаёт субагенту `role_id` и список
+`skill_id`. Субагент сам загружает роль и скиллы через MCP:
 ```typescript
-// Оркестратор запрашивает роль для субагента
+// Субагент первым действием загружает роль
 get_role({ role_id: "engineering-frontend-developer" })
 
-// Оркестратор запрашивает скилл для процедуры
+// Затем загружает SOP-скилл
 get_skill({ skill_id: "test-driven-development" })
 ```
 
@@ -100,11 +103,11 @@ get_skill({ skill_id: "test-driven-development" })
      |
 [Оркестратор] -> Триаж: Trivial
      |
-[Оркестратор] -> get_role("engineering-frontend-developer")
+[Оркестратор] -> Делегирует: role_id + skill_id + boundaries + report format
      |
-[Субагент] -> Получает контекст роли и пишет код
+[Субагент] -> get_role(...) + get_skill(...) → пишет код
      |
-[Оркестратор] -> Проверка (Verification skill)
+[Оркестратор] -> Acceptance Gate по артефактам и evidence
      |
 [Пользователь] <- Готовая кнопка
 ```
@@ -156,6 +159,23 @@ node update.js
   }
 }
 ```
+Для Kilo Code используйте формат:
+```json
+{
+  "mcp": {
+    "superagents-mcp": {
+      "type": "local",
+      "command": ["superagents-mcp"],
+      "environment": {
+        "SUPERPOWERS_ROLES_PATH": "~/.superpowers-orchestrator/roles",
+        "SUPERPOWERS_SKILLS_PATH": "~/.superpowers-orchestrator/skills/behavioral"
+      },
+      "enabled": true,
+      "timeout": 10000
+    }
+  }
+}
+```
 Подробные инструкции: [workflows/cline.md](workflows/cline.md), [workflows/roocode.md](workflows/roocode.md).
 
 ## Как это работает (технический процесс)
@@ -164,12 +184,13 @@ node update.js
 Пользователь → Оркестратор (Engineering Manager skill)
                     │
                     ├─ Триаж: Trivial / Small / Standard / Epic
-                    ├─ Декомпозиция → TODO-цепочка
+                    ├─ Discovery при неизвестных файлах
+                    ├─ Route + role selection
                     │
                     └─ Делегирование субагентам:
-                         ├─ get_role("engineering-frontend-developer")  → персона
-                         ├─ get_skill("test-driven-development")        → SOP
-                         └─ субагент выполняет задачу по роли + скиллам
+                         ├─ role_id + required skill_id
+                         ├─ boundaries + exact task + report format
+                         └─ субагент сам вызывает get_role/get_skill
 ```
 
 ### Уровни триажа
@@ -177,7 +198,7 @@ node update.js
 |---------|----------|---------|
 | **Trivial** | 1 файл, ≤30 строк, без новой логики | Fast-Path — один вызов code-субагента |
 | **Small** | 1–3 файла, дизайн очевиден | Short-Path — code + review |
-| **Standard** | Новая фича, несколько модулей, API | Full SOP — spec → plan → implement → review |
+| **Standard** | Новая фича, несколько модулей, API | Full SOP — spec → plan → `subagent-driven-development` |
 | **Epic** | >5 тасков, кросс-зависимости | Decompose & Loop |
 
 ## MCP Tools

@@ -1,6 +1,10 @@
 # Code Quality Reviewer Prompt Template
 
-Use this template when dispatching a code quality reviewer subagent.
+Use this as an addendum when dispatching a code quality reviewer subagent.
+
+If this is called by `super-orchestrator`, first apply the `super-orchestrator`
+Prompt Contract: role id, host mode, required skills, boundaries, task text and
+report format. This file adds quality-review-specific instructions only.
 
 **Purpose:** Verify implementation is well-built (clean, tested, maintainable)
 

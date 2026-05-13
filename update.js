@@ -103,6 +103,12 @@ function getZedConfigPath() {
   return path.join(os.homedir(), ".config/zed/settings.json");
 }
 
+function getKiloConfigPath() {
+  const p = os.platform();
+  if (p === "win32") return path.join(os.homedir(), "AppData/Roaming/kilo/kilo.jsonc");
+  return path.join(os.homedir(), ".config/kilo/kilo.jsonc");
+}
+
 function getMcpSettingsPath(ide) {
   if (ide === "claude-desktop") return getClaudeDesktopConfigPath();
   if (ide === "github-copilot") return path.join(os.homedir(), "Library/Application Support/Code/User/mcp.json");
@@ -110,6 +116,7 @@ function getMcpSettingsPath(ide) {
   if (ide === "continue") return getContinueConfigPath();
   if (ide === "zed") return getZedConfigPath();
   if (ide === "windsurf") return path.join(os.homedir(), ".codeium/windsurf/mcp_config.json");
+  if (ide === "kilo") return getKiloConfigPath();
   const base = path.join(os.homedir(), "Library/Application Support/Code/User/globalStorage");
   if (ide === "cline") return path.join(base, "saoudrizwan.claude-dev/settings/cline_mcp_settings.json");
   if (ide === "roocode") return path.join(base, "rooveterinaryinc.roo-cline/settings/mcp_settings.json");
@@ -131,6 +138,7 @@ function getAgentDest(ide) {
     "cursor": path.join(cwd, ".cursor", "rules"),
     "windsurf": path.join(os.homedir(), ".codeium", "windsurf", "global_workflows"),
     "opencode": path.join(cwd, ".opencode", "agent"),
+    "kilo": path.join(os.homedir(), ".config", "kilo", "agent"),
     "qwen": path.join(os.homedir(), ".qwen", "agents"),
   };
   return map[ide] || null;
@@ -146,6 +154,7 @@ function getAgentSourceDir(ide) {
     "cursor": "cursor",
     "windsurf": "windsurf",
     "opencode": "opencode",
+    "kilo": "kilo-code",
     "qwen": "qwen",
   };
   const dir = map[ide];
@@ -166,6 +175,7 @@ function hasMcpConfig(ide) {
     // Check both mcpServers and servers (Copilot uses "servers")
     if (config.mcpServers?.["superagents-mcp"]) return true;
     if (config.servers?.["superagents-mcp"]) return true;
+    if (config.mcp?.["superagents-mcp"]) return true;
   } catch { /* ignore parse errors */ }
   return false;
 }
@@ -188,6 +198,7 @@ function detectInstalledIdes() {
     "cline",
     "roocode",
     "cursor",
+    "kilo",
     "windsurf",
     "opencode",
     "qwen",
@@ -268,6 +279,18 @@ function updateMcpConfig(ide) {
   if (ide === "github-copilot") {
     if (!config.servers) config.servers = {};
     config.servers["superagents-mcp"] = { type: "stdio", ...entry };
+  } else if (ide === "kilo") {
+    if (!config.mcp) config.mcp = {};
+    config.mcp["superagents-mcp"] = {
+      type: "local",
+      command: ["superagents-mcp"],
+      environment: {
+        SUPERPOWERS_ROLES_PATH: path.join(INSTALL_DIR, "roles"),
+        SUPERPOWERS_SKILLS_PATH: PRIVATE_SKILLS_DIR,
+      },
+      enabled: true,
+      timeout: 10000,
+    };
   } else {
     if (!config.mcpServers) config.mcpServers = {};
     config.mcpServers["superagents-mcp"] = entry;
@@ -384,6 +407,7 @@ async function main() {
     "cline": "Cline (VS Code)",
     "roocode": "RooCode (VS Code)",
     "cursor": "Cursor",
+    "kilo": "Kilo Code",
     "windsurf": "Windsurf",
     "opencode": "OpenCode",
     "qwen": "Qwen",

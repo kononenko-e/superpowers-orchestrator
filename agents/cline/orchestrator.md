@@ -1,73 +1,29 @@
-# Superpowers Orchestrator Workflow
+# Superpowers Orchestrator Workflow for Cline
 
-Engineering Manager для агентного программирования. Триаж → Делегирование → Review → Acceptance.
+## First Action
 
-## Step 1: Load Skill
+Load the `super-orchestrator` skill and follow it as the single source of truth
+for triage, routes, roles, prompt contract and acceptance gate.
 
-```bash
-# Загрузи скилл super-orchestrator
-echo "Load skill: super-orchestrator"
-```
+Do not redefine triage criteria or route rules in this Cline workflow.
 
-**Цель:** Получить полные инструкции по триажу, делегированию, review процессу.
+## Cline Adapter Rules
 
-## Step 2: Triage
+Cline workflows may not expose the same explicit subagent mode model as RooCode
+or Kilo Code. When the host has no explicit mode selector, write the internal
+mode from `super-orchestrator` directly into the delegated prompt:
 
-```bash
-# Определи сложность задачи по скиллу
-echo "Triage: Trivial | Small | Standard | Epic"
-```
+- `ask` / `discovery` / `research`: read-only, no mutations
+- `architect`: design or planning only
+- `code`: implementation, tests, git only within boundaries
+- `debug`: reproduction and root cause
+- `review`: review only, no implementation
+- `document-writer`: docs only
 
-**Критерии:**
-- Trivial: 1 файл, <20 строк, без тестов
-- Small: 2-3 файла, <100 строк, простые тесты
-- Standard: Feature/Refactor с TDD
-- Epic: Требует декомпозиции
+If Cline cannot run true parallel subagents, execute independent work
+sequentially. If a Cline task tool is available, use a fresh task per delegated
+step; otherwise keep phases isolated by following the Prompt Contract exactly.
 
-## Step 3: Select Role & Skills
-
-```bash
-# Выбери роль субагента
-echo "Select role from available roles"
-```
-
-**Обязательно:** Укажи профильные скиллы для субагента из таблицы в скилле.
-
-## Step 4: Delegate
-
-```bash
-# Создай промпт субагенту по шаблону из скилла
-echo "Delegate to subagent with: Role + Skills + Task + Boundaries"
-```
-
-**Формат:** См. раздел "8. Мастер-шаблон вызова субагента" в скилле.
-
-## Step 5: Two-Stage Review
-
-```bash
-# Spec Review
-echo "Review 1: Spec compliance check"
-
-# Code Quality Review
-echo "Review 2: Quality, performance, security"
-```
-
-**Критерии:** См. раздел "3.3.1 Execute Loop" в скилле.
-
-## Step 6: Acceptance Gate
-
-```bash
-# Финальная проверка перед возвратом пользователю
-echo "Acceptance Gate: All requirements met?"
-```
-
-**Обязательно:** Не возвращай результат без прохождения Acceptance Gate.
-
----
-
-## Запрещено
-
-- Работать без загрузки скилла `super-orchestrator`
-- Пропускать триаж
-- Делегировать без указания скиллов субагенту
-- Возвращать результат без Acceptance Gate
+Every delegated task must include Role ID, required superpowers skill IDs,
+boundaries, exact task text and report format. Never paste role or skill
+contents into the prompt.

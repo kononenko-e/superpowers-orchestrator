@@ -11,6 +11,29 @@ Execute plan by dispatching fresh subagent per task, with two-stage review after
 
 **Core principle:** Fresh subagent per task + two-stage review (spec then quality) = high quality, fast iteration
 
+## Superpowers Orchestrator Interface
+
+When `super-orchestrator` reaches Standard SOP execution, this skill is the
+canonical execution loop. The orchestrator owns triage, route, role selection,
+host-mode mapping, boundaries and acceptance gate. This skill owns only
+per-plan-task execution and review sequencing.
+
+For every subagent prompt, start with the `super-orchestrator` Prompt Contract,
+then add the relevant prompt addendum from this directory. Do not duplicate role
+text or skill contents in the prompt.
+
+Per-task delegation:
+
+| Step | Role | Internal mode | Required superpowers skills |
+|---|---|---|---|
+| Implement | domain execution role selected by orchestrator | `code` | `test-driven-development`, `verification-before-completion`, `caveman` |
+| Spec review | `engineering-code-reviewer` | `review` | `requesting-code-review` |
+| Quality review | `engineering-code-reviewer` | `review` | `requesting-code-review` |
+
+One implementer call handles exactly one full plan task. Do not pass the whole
+plan into an implementer prompt; pass the plan path plus the exact task text.
+Do not start the next plan task until both reviews pass.
+
 ## When to Use
 
 ```dot
